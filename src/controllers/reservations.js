@@ -25,15 +25,17 @@ exports.getReservationsByStatus = async (req, res) => {
 
 exports.createReservation = async (req, res) => {
   try {
-    // Verify tour exists and is active
     const tour = await Tour.findById(req.body.tourId);
     if (!tour || !tour.isActive) {
       return res.status(400).json({ message: 'Tour is not available' });
     }
 
-    // Verify date is available
     if (!tour.availableDates.some(date => date.getTime() === new Date(req.body.date).getTime())) {
       return res.status(400).json({ message: 'Selected date is not available for this tour' });
+    }
+
+    if (req.body.people > tour.maxPeople) {
+      return res.status(400).json({ message: `Cannot exceed ${tour.maxPeople} people for this tour` });
     }
 
     const reservation = new Reservation(req.body);
