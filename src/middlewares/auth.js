@@ -2,25 +2,27 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 module.exports = async function(req, res, next) {
-  // Get token from header
-  const token = req.header('x-auth-token');
-  
-  // Check if no token
+  // Obtener token desde Authorization o x-auth-token
+  const authHeader = req.header('Authorization');
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.split(' ')[1]
+    : req.header('x-auth-token'); // fallback
+
+  // Si no hay token, rechazar
   if (!token) {
     return res.status(401).json({ message: 'No token, authorization denied' });
   }
 
   try {
-    // Verify token
+    // Verificar token
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secretkey');
-    
-    // Check if user still exists
+
+    // Verificar si el usuario sigue existiendo
     const user = await User.findById(decoded.id);
     if (!user) {
       return res.status(401).json({ message: 'User no longer exists' });
     }
 
-    // Attach user to request
     req.user = decoded;
     next();
   } catch (err) {
