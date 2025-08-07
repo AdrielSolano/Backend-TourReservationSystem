@@ -4,13 +4,32 @@ const Tour = require('../models/Tour');
 exports.getAllReservations = async (req, res) => {
   try {
     const reservations = await Reservation.find()
-      .populate('customerId', 'firstName lastName email')
-      .populate('tourId', 'name price');
+      .populate('customerId', 'firstName lastName email phone')
+      .populate('tourId', 'name description price availableDates');
     res.json(reservations);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.getReservationById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const reservation = await Reservation.findById(id)
+      .populate('customerId', 'firstName lastName email phone address')
+      .populate('tourId', 'name description price availableDates duration maxPeople isActive');
+
+    if (!reservation) {
+      return res.status(404).json({ message: 'Reservación no encontrada' });
+    }
+
+    res.json(reservation);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 exports.getReservationsByStatus = async (req, res) => {
   try {
@@ -25,52 +44,58 @@ exports.getReservationsByStatus = async (req, res) => {
 
 exports.createReservation = async (req, res) => {
   try {
-    const tour = await Tour.findById(req.body.tourId);
-    if (!tour || !tour.isActive) {
-      return res.status(400).json({ message: 'Tour is not available' });
+    const { tourId, people, totalPrice } = req.body;
+
+    let price = totalPrice;
+    if (typeof price === 'undefined') {
+      const tour = await Tour.findById(tourId);
+      if (!tour) return res.status(404).json({ error: 'Tour no encontrado' });
+      price = tour.price * people;
     }
 
-    if (!tour.availableDates.some(date => date.getTime() === new Date(req.body.date).getTime())) {
-      return res.status(400).json({ message: 'Selected date is not available for this tour' });
-    }
+    const reservation = new Reservation({
+      ...req.body,
+      totalPrice: price
+    });
 
-    if (req.body.people > tour.maxPeople) {
-      return res.status(400).json({ message: `Cannot exceed ${tour.maxPeople} people for this tour` });
-    }
-
-    const reservation = new Reservation(req.body);
-    const saved = await reservation.save();
-
-    const populated = await Reservation.findById(saved._id)
-      .populate('customerId', 'firstName lastName email')
-      .populate('tourId', 'name price');
+    await reservation.save();
+    const populated = await reservation.populate(['customerId', 'tourId']);
 
     res.status(201).json(populated);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error al crear reservación:', error);
+    res.status(500).json({ error: 'Error al crear reservación' });
   }
 };
 
 
 exports.updateReservation = async (req, res) => {
   try {
-    const updatedReservation = await Reservation.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    )
-      .populate('customerId', 'firstName lastName email')
-      .populate('tourId', 'name price');
+    const { id } = req.params;
+    const { tourId, people, totalPrice } = req.body;
 
-    if (!updatedReservation) {
-      return res.status(404).json({ message: 'Reservation not found' });
+    let price = totalPrice;
+    if (typeof price === 'undefined') {
+      const tour = await Tour.findById(tourId);
+      if (!tour) return res.status(404).json({ error: 'Tour no encontrado' });
+      price = tour.price * people;
     }
-    res.json(updatedReservation);
+
+    const updated = await Reservation.findByIdAndUpdate(id, {
+      ...req.body,
+      totalPrice: price
+    }, { new: true }).populate(['customerId', 'tourId']);
+
+    if (!updated) return res.status(404).json({ error: 'Reservación no encontrada' });
+
+    res.json(updated);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error al actualizar reservación:', error);
+    res.status(500).json({ error: 'Error al actualizar reservación' });
   }
 };
-  
+
+
 
 exports.deleteReservation = async (req, res) => {
   try {

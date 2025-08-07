@@ -7,6 +7,7 @@ router.use(authMiddleware);
 
 router.get('/', reservationController.getAllReservations);
 router.get('/status/:status', reservationController.getReservationsByStatus);
+router.get('/:id', authMiddleware, reservationController.getReservationById); // ← Agregada esta línea
 router.post('/', reservationController.createReservation);
 router.put('/:id', reservationController.updateReservation);
 router.delete('/:id', reservationController.deleteReservation);

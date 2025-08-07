@@ -1,45 +1,19 @@
 const mongoose = require('mongoose');
 
+// models/Reservation.js
 const reservationSchema = new mongoose.Schema({
-  customerId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Customer',
-    required: [true, 'Customer ID is required']
-  },
-  tourId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Tour',
-    required: [true, 'Tour ID is required']
-  },
-  date: { 
-    type: Date, 
-    required: [true, 'Reservation date is required'],
-    validate: {
-      validator: function(date) {
-        return date > new Date();
-      },
-      message: 'Reservation date must be in the future'
-    }
-  },
-  people: { 
-    type: Number, 
-    required: [true, 'Number of people is required'],
-    min: [1, 'At least 1 person is required']
-  },
-  totalPrice: { 
-    type: Number,
-    min: [0, 'Total price cannot be negative']
-  },
-  status: { 
-    type: String, 
+  customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
+  tourId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tour', required: true },
+  date: { type: Date, required: true },
+  people: { type: Number, required: true, min: 1 },
+  status: {
+    type: String,
     enum: ['pending', 'confirmed', 'cancelled'],
     default: 'pending'
   },
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
-  }
-});
+  totalPrice: { type: Number }, // ✅ se permite guardar manualmente
+}, { timestamps: true });
+
 
 // Middleware to calculate total price before saving
 reservationSchema.pre('save', async function(next) {
