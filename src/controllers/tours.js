@@ -1,13 +1,25 @@
 const Tour = require('../models/Tour');
 
+// Ejemplo en tu controlador:
 exports.getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
-    res.json(tours);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const total = await Tour.countDocuments();
+    const tours = await Tour.find().skip(skip).limit(limit);
+
+    res.json({
+      data: { tours },
+      totalPages: Math.ceil(total / limit),
+      currentPage: page
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
+
 
 exports.getActiveTours = async (req, res) => {
   try {

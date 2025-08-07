@@ -1,22 +1,26 @@
 const Customer = require('../models/Customer');
 
+// Controlador en backend
 exports.getAllCustomers = async (req, res) => {
   try {
-    const customers = await Customer.find().select('-__v');
-    res.status(200).json({
-      status: 'success',
-      results: customers.length,
-      data: {
-        customers
-      }
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const total = await Customer.countDocuments();
+    const customers = await Customer.find().skip(skip).limit(limit);
+
+    res.json({
+      data: { customers },
+      totalPages: Math.ceil(total / limit),
+      currentPage: page
     });
   } catch (err) {
-    res.status(500).json({
-      status: 'error',
-      message: err.message
-    });
+    res.status(500).json({ message: err.message });
   }
 };
+
+
 
 exports.getCustomer = async (req, res) => {
   try {

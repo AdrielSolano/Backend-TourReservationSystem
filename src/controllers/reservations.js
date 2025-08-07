@@ -3,14 +3,28 @@ const Tour = require('../models/Tour');
 
 exports.getAllReservations = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await Reservation.countDocuments();
     const reservations = await Reservation.find()
+      .skip(skip)
+      .limit(limit)
       .populate('customerId', 'firstName lastName email phone')
       .populate('tourId', 'name description price availableDates');
-    res.json(reservations);
+
+    res.json({
+      data: reservations,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 exports.getReservationById = async (req, res) => {
   try {
