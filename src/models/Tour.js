@@ -1,3 +1,4 @@
+// models/Tour.js
 const mongoose = require('mongoose');
 
 const tourSchema = new mongoose.Schema({
@@ -22,15 +23,6 @@ const tourSchema = new mongoose.Schema({
     required: [true, 'Price is required'],
     min: [0, 'Price cannot be negative']
   },
-  availableDates: [{
-    type: Date,
-    validate: {
-      validator: function (date) {
-        return date > new Date();
-      },
-      message: 'Available date must be in the future'
-    }
-  }],
   maxPeople: {
     type: Number,
     required: [true, 'Maximum people is required'],
@@ -40,14 +32,14 @@ const tourSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  availableDates: {
+    type: [Date],
+    default: [],
+  },
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
-
-tourSchema.index({ name: 1 });
-tourSchema.index({ price: 1 });
-tourSchema.index({ isActive: 1 });
 
 module.exports = mongoose.model('Tour', tourSchema);

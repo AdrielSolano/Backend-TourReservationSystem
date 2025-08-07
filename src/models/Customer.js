@@ -31,11 +31,8 @@ const customerSchema = new mongoose.Schema({
     }
   },
   address: {
-    street: { type: String },
-    city: { type: String },
-    state: { type: String },
-    postalCode: { type: String },
-    country: { type: String, default: 'México' }
+    type: String, // ← AHORA ES STRING
+    trim: true
   },
   createdAt: {
     type: Date,
@@ -49,21 +46,17 @@ const customerSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Índices para mejor performance
 customerSchema.index({ lastName: 1, firstName: 1 });
 
-// Virtual para nombre completo
-customerSchema.virtual('fullName').get(function() {
+customerSchema.virtual('fullName').get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
 
-// Middleware para actualizar la fecha de modificación
-customerSchema.pre('save', function(next) {
+customerSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-// Middleware para populares reservaciones al consultar un cliente
 customerSchema.virtual('reservations', {
   ref: 'Reservation',
   localField: '_id',

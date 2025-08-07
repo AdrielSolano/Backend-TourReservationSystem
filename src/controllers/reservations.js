@@ -39,12 +39,18 @@ exports.createReservation = async (req, res) => {
     }
 
     const reservation = new Reservation(req.body);
-    const newReservation = await reservation.save();
-    res.status(201).json(newReservation);
+    const saved = await reservation.save();
+
+    const populated = await Reservation.findById(saved._id)
+      .populate('customerId', 'firstName lastName email')
+      .populate('tourId', 'name price');
+
+    res.status(201).json(populated);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
+
 
 exports.updateReservation = async (req, res) => {
   try {
@@ -52,9 +58,10 @@ exports.updateReservation = async (req, res) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('customerId', 'firstName lastName')
-     .populate('tourId', 'name');
-    
+    )
+      .populate('customerId', 'firstName lastName email')
+      .populate('tourId', 'name price');
+
     if (!updatedReservation) {
       return res.status(404).json({ message: 'Reservation not found' });
     }
@@ -63,6 +70,7 @@ exports.updateReservation = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+  
 
 exports.deleteReservation = async (req, res) => {
   try {
