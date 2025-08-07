@@ -1,11 +1,10 @@
-// api/index.js
+// app.js (desarrollo local)
 require('dotenv').config();
 const express = require('express');
-const serverless = require('serverless-http');
 const cors = require('cors');
-const connectDB = require('./config/db'); // ✅
+const connectDB = require('./config/db');
 
-// Rutas (ajusta paths según tu repo)
+// Rutas
 const authRoutes = require('./src/routes/auth');
 const customerRoutes = require('./src/routes/customers');
 const tourRoutes = require('./src/routes/tours');
@@ -13,41 +12,45 @@ const reservationRoutes = require('./src/routes/reservations');
 
 const app = express();
 
-// Conexión a DB (usa singleton en connectDB para reusar conexión entre invocaciones)
-connectDB(); // inicia la conexión al “boot” de la función
+// Conexión a DB (usa la versión cacheada en config/db.js)
+connectDB();
 
-// CORS: permite tu frontend local y tu dominio de Vercel
+// CORS: permite tu front local y el de Vercel
 const allowedOrigins = [
-  process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
-  /\.vercel\.app$/i, // cualquier subdominio de Vercel
-];
+  'http://localhost:5173',
+  'https://frontend-tour-reservation-system-me.vercel.app',
+  process.env.FRONTEND_ORIGIN, // opcional por si cambias dominio
+].filter(Boolean);
+
 app.use(cors({
   origin: (origin, cb) => {
+    // requests sin origin (curl, same-origin) se permiten
     if (!origin) return cb(null, true);
-    const ok = allowedOrigins.some((o) =>
-      (o instanceof RegExp ? o.test(origin) : o === origin)
-    );
-    cb(ok ? null : new Error('Not allowed by CORS'), ok);
+    const ok = allowedOrigins.includes(origin);
+    cb(ok ? null : new Error(`Not allowed by CORS: ${origin}`), ok);
   },
-  credentials: true,
+  credentials: true, // déjalo en true solo si usas cookies/sesión
 }));
 
 app.use(express.json());
 
-// Rutas (NOTA: aquí van SIN /api porque Vercel ya monta esto en /api)
-app.use('/auth', authRoutes);
-app.use('/customers', customerRoutes);
-app.use('/tours', tourRoutes);
-app.use('/reservations', reservationRoutes);
+// Prefijo /api en local (coincide con tu frontend)
+app.use('/api/auth', authRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/tours', tourRoutes);
+app.use('/api/reservations', reservationRoutes);
 
 // Healthcheck
-app.get('/health', (req, res) => res.json({ ok: true }));
+app.get('/api/health', (_req, res) => res.json({ ok: true }));
+
+// 404
+app.use((_req, res) => res.status(404).json({ message: 'Not found' }));
 
 // Manejo de errores
-app.use((err, req, res, next) => {
+app.use((err, _req, res, _next) => {
   console.error(err?.stack || err);
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-// Exporta la función serverless (NO app.listen)
-module.exports = serverless(app);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 API escuchando en http://localhost:${PORT}`));

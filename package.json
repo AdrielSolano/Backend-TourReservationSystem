@@ -2,8 +2,8 @@
   "name": "backend-tourreservationsystem",
   "version": "1.0.0",
   "main": "app.js",
+  "engines": { "node": ">=18 <21" },
   "scripts": {
-    "start": "node app.js",
     "dev": "nodemon app.js"
   },
   "keywords": [],
