@@ -1,56 +1,48 @@
-// app.js (desarrollo local)
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const connectDB = require('./config/db');
-
-// Rutas
-const authRoutes = require('./src/routes/auth');
-const customerRoutes = require('./src/routes/customers');
-const tourRoutes = require('./src/routes/tours');
-const reservationRoutes = require('./src/routes/reservations');
+const cors = require('cors');
 
 const app = express();
 
-// Conexión a DB (usa la versión cacheada en config/db.js)
+// Conexión a la base de datos
 connectDB();
 
-// CORS: permite tu front local y el de Vercel
+// Lista de orígenes permitidos
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://frontend-tour-reservation-system.vercel.app/',
-  process.env.FRONTEND_ORIGIN, // opcional por si cambias dominio
+  'https://frontend-tour-reservation-system.vercel.app',
+  process.env.FRONTEND_ORIGIN // opcional si quieres setearlo por env
 ].filter(Boolean);
 
+// Configurar CORS antes de las rutas
 app.use(cors({
-  origin: (origin, cb) => {
-    // requests sin origin (curl, same-origin) se permiten
-    if (!origin) return cb(null, true);
-    const ok = allowedOrigins.includes(origin);
-    cb(ok ? null : new Error(`Not allowed by CORS: ${origin}`), ok);
+  origin: (origin, callback) => {
+    // Permitir solicitudes sin origin (Postman, curl, same-origin)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
   },
-  credentials: true, // déjalo en true solo si usas cookies/sesión
+  credentials: true
 }));
 
+// Middleware
 app.use(express.json());
 
-// Prefijo /api en local (coincide con tu frontend)
-app.use('/api/auth', authRoutes);
-app.use('/api/customers', customerRoutes);
-app.use('/api/tours', tourRoutes);
-app.use('/api/reservations', reservationRoutes);
-
-// Healthcheck
-app.get('/api/health', (_req, res) => res.json({ ok: true }));
-
-// 404
-app.use((_req, res) => res.status(404).json({ message: 'Not found' }));
+// Rutas
+app.use('/api/auth', require('./src/routes/auth'));
+app.use('/api/customers', require('./src/routes/customers'));
+app.use('/api/tours', require('./src/routes/tours'));
+app.use('/api/reservations', require('./src/routes/reservations'));
 
 // Manejo de errores
-app.use((err, _req, res, _next) => {
-  console.error(err?.stack || err);
+app.use((err, req, res, next) => {
+  console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
+// Iniciar servidor
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 API escuchando en http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
