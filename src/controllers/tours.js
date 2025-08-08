@@ -1,6 +1,5 @@
 const Tour = require('../models/Tour');
 
-// Ejemplo en tu controlador:
 exports.getAllTours = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;

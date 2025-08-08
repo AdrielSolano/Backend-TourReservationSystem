@@ -1,6 +1,5 @@
 const Customer = require('../models/Customer');
 
-// Controlador en backend
 exports.getAllCustomers = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;

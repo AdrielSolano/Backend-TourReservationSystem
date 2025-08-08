@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User'); // Correcto porque auth.js está dentro de src/routes/
+const User = require('../models/User'); 
 const jwt = require('jsonwebtoken');
-const authMiddleware = require('../middlewares/auth'); // Middleware de autenticación
+const authMiddleware = require('../middlewares/auth'); 
 
 
-// Registro
 router.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -17,7 +16,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -39,7 +37,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// al final de routes/auth.js
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');

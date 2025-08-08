@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// models/Reservation.js
 const reservationSchema = new mongoose.Schema({
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
   tourId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tour', required: true },
@@ -11,11 +10,10 @@ const reservationSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'cancelled'],
     default: 'pending'
   },
-  totalPrice: { type: Number }, // ✅ se permite guardar manualmente
+  totalPrice: { type: Number }, 
 }, { timestamps: true });
 
 
-// Middleware to calculate total price before saving
 reservationSchema.pre('save', async function(next) {
   if (!this.isModified('people') && !this.isModified('tourId')) return next();
   
@@ -30,7 +28,6 @@ reservationSchema.pre('save', async function(next) {
   }
 });
 
-// Indexes for better performance
 reservationSchema.index({ customerId: 1 });
 reservationSchema.index({ tourId: 1 });
 reservationSchema.index({ date: 1 });

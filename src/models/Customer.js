@@ -31,7 +31,7 @@ const customerSchema = new mongoose.Schema({
     }
   },
   address: {
-    type: String, // ← AHORA ES STRING
+    type: String, 
     trim: true
   },
   createdAt: {

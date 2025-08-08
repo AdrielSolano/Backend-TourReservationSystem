@@ -1,4 +1,3 @@
-// api/index.js
 require('dotenv').config();
 const express = require('express');
 const serverless = require('serverless-http');
@@ -14,10 +13,9 @@ const reservationRoutes = require('../src/routes/reservations');
 const app = express();
 connectDB();
 
-// CORS: permite tu front en Vercel
 const allowedOrigins = [
   'https://frontend-tour-reservation-system.vercel.app/',
-  process.env.FRONTEND_ORIGIN,      // opcional extra
+  process.env.FRONTEND_ORIGIN,     
 ].filter(Boolean);
 
 app.use(cors({
@@ -33,7 +31,6 @@ app.use(cors({
 
 app.use(express.json());
 
-// 👇 En Vercel NO antepongas /api (Vercel ya monta /api/index.js en /api)
 app.use('/auth', authRoutes);
 app.use('/customers', customerRoutes);
 app.use('/tours', tourRoutes);
