@@ -16,21 +16,24 @@ const app = express();
 connectDB();
 
 // CORS: permite tu front local y el de Vercel
+const vercelRegex = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
+
 const allowedOrigins = [
   'http://localhost:5173',
   'https://frontend-tour-reservation-system-me.vercel.app',
-  process.env.FRONTEND_ORIGIN, // opcional por si cambias dominio
+  process.env.FRONTEND_ORIGIN,
+  vercelRegex,
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, cb) => {
-    // requests sin origin (curl, same-origin) se permiten
     if (!origin) return cb(null, true);
-    const ok = allowedOrigins.includes(origin);
+    const ok = allowedOrigins.some(o => o instanceof RegExp ? o.test(origin) : o === origin);
     cb(ok ? null : new Error(`Not allowed by CORS: ${origin}`), ok);
   },
-  credentials: true, // déjalo en true solo si usas cookies/sesión
+  credentials: true,
 }));
+
 
 app.use(express.json());
 
