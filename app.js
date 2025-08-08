@@ -18,7 +18,7 @@ connectDB();
 // CORS: permite tu front local y el de Vercel
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://frontend-tour-reservation-system-me.vercel.app',
+  'https://frontend-tour-reservation-system.vercel.app/',
   process.env.FRONTEND_ORIGIN, // opcional por si cambias dominio
 ].filter(Boolean);
 

@@ -16,7 +16,7 @@ connectDB();
 
 // CORS: permite tu front en Vercel
 const allowedOrigins = [
-  'https://frontend-tour-reservation-system-me.vercel.app',
+  'https://frontend-tour-reservation-system.vercel.app/',
   process.env.FRONTEND_ORIGIN,      // opcional extra
 ].filter(Boolean);
 
